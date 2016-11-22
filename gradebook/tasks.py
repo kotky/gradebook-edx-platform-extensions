@@ -43,7 +43,7 @@ def _generate_user_gradebook(course_key, user):
     course_descriptor = get_course(course_key, depth=None)
     request = RequestMockWithoutMiddleware().get('/')
     request.user = user
-    progress_summary = grades.progress_summary(user, request, course_descriptor, locators_as_strings=True)
+    progress_summary = grades.progress_summary(user, request, course_descriptor)
     grade_summary = grades.grade(user, request, course_descriptor)
     grading_policy = course_descriptor.grading_policy
     grade = grade_summary['percent']
