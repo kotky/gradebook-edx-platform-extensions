@@ -39,7 +39,7 @@ def _generate_user_gradebook(course_key, user):
     Recalculates the specified user's gradebook entry
     """
     # import is local to avoid recursive import
-    from courseware.views import get_course
+    from courseware.courses import get_course
     course_descriptor = get_course(course_key, depth=None)
     request = RequestMockWithoutMiddleware().get('/')
     request.user = user
