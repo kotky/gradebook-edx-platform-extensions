@@ -70,11 +70,11 @@ class Command(BaseCommand):
             for user in users:
                 request = RequestMockWithoutMiddleware().get('/')
                 request.user = user
-                grade_data = grades.grade(user, request, course)
+                grade_data = grades.grade(user, course)
                 grade = grade_data['percent']
                 grading_policy = course.grading_policy
                 proforma_grade = grades.calculate_proforma_grade(grade_data, grading_policy)
-                progress_summary = grades.progress_summary(user, request, course, locators_as_strings=True)
+                progress_summary = grades.progress_summary(user, course)
                 try:
                     gradebook_entry = StudentGradebook.objects.get(user=user, course_id=course.id)
                     if (gradebook_entry.grade != grade or

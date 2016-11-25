@@ -33,7 +33,6 @@ def update_user_gradebook(course_key, user_id):
         log.exception('An error occurred while generating gradebook: %s', ex.message)
         raise
 
-
 def _generate_user_gradebook(course_key, user):
     """
     Recalculates the specified user's gradebook entry
@@ -43,8 +42,8 @@ def _generate_user_gradebook(course_key, user):
     course_descriptor = get_course(course_key, depth=None)
     request = RequestMockWithoutMiddleware().get('/')
     request.user = user
-    progress_summary = grades.progress_summary(user, request, course_descriptor)
-    grade_summary = grades.grade(user, request, course_descriptor)
+    progress_summary = grades.progress_summary(user, course_descriptor)
+    grade_summary = grades.grade(user, course_descriptor)
     grading_policy = course_descriptor.grading_policy
     grade = grade_summary['percent']
     proforma_grade = grades.calculate_proforma_grade(grade_summary, grading_policy)
