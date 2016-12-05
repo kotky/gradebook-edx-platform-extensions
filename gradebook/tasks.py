@@ -7,8 +7,8 @@ import logging
 from celery.task import task  # pylint: disable=import-error,no-name-in-module
 
 from courseware import grades
+from util.db import outer_atomic
 from xmodule.modulestore import EdxJSONEncoder
-from util.request import RequestMockWithoutMiddleware
 from django.contrib.auth.models import User
 from opaque_keys.edx.keys import CourseKey
 
@@ -18,13 +18,14 @@ log = logging.getLogger('edx.celery.task')
 
 
 @task(name=u'lms.djangoapps.gradebook.tasks.update_user_gradebook')
+@outer_atomic
 def update_user_gradebook(course_key, user_id):
     """
     Taks to recalculate user's gradebook entry
     """
+    log.info('Dosa do kraja!')
     if not isinstance(course_key, basestring):
         raise ValueError('course_key must be a string. {} is not acceptable.'.format(type(course_key)))
-
     course_key = CourseKey.from_string(course_key)
     try:
         user = User.objects.get(id=user_id)
@@ -32,6 +33,7 @@ def update_user_gradebook(course_key, user_id):
     except Exception as ex:
         log.exception('An error occurred while generating gradebook: %s', ex.message)
         raise
+    log.info('Dosa do kraja!')
 
 def _generate_user_gradebook(course_key, user):
     """
@@ -40,8 +42,6 @@ def _generate_user_gradebook(course_key, user):
     # import is local to avoid recursive import
     from courseware.courses import get_course
     course_descriptor = get_course(course_key, depth=None)
-    request = RequestMockWithoutMiddleware().get('/')
-    request.user = user
     progress_summary = grades.progress_summary(user, course_descriptor)
     grade_summary = grades.grade(user, course_descriptor)
     grading_policy = course_descriptor.grading_policy
