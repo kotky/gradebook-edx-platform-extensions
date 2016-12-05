@@ -12,7 +12,6 @@ from gradebook.models import StudentGradebook
 from student.models import CourseEnrollment
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore import EdxJSONEncoder
-from util.request import RequestMockWithoutMiddleware
 
 log = logging.getLogger(__name__)
 
@@ -68,8 +67,6 @@ class Command(BaseCommand):
 
             # For each user...
             for user in users:
-                request = RequestMockWithoutMiddleware().get('/')
-                request.user = user
                 grade_data = grades.grade(user, course)
                 grade = grade_data['percent']
                 grading_policy = course.grading_policy

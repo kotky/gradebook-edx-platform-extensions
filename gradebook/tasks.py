@@ -7,10 +7,12 @@ import logging
 from celery.task import task  # pylint: disable=import-error,no-name-in-module
 
 from courseware import grades
-from util.db import outer_atomic
+from xmodule.modulestore.django import modulestore
 from xmodule.modulestore import EdxJSONEncoder
+from django.db import transaction
 from django.contrib.auth.models import User
 from opaque_keys.edx.keys import CourseKey
+from util.request import RequestMockWithoutMiddleware
 
 from gradebook.models import StudentGradebook
 
@@ -18,7 +20,6 @@ log = logging.getLogger('edx.celery.task')
 
 
 @task(name=u'lms.djangoapps.gradebook.tasks.update_user_gradebook')
-@outer_atomic
 def update_user_gradebook(course_key, user_id):
     """
     Taks to recalculate user's gradebook entry
@@ -29,13 +30,16 @@ def update_user_gradebook(course_key, user_id):
     course_key = CourseKey.from_string(course_key)
     try:
         user = User.objects.get(id=user_id)
-        _generate_user_gradebook(course_key, user)
+        request = RequestMockWithoutMiddleware().get('/')
+        request.user = user
+        _generate_user_gradebook(user, request, course_key, user)
     except Exception as ex:
         log.exception('An error occurred while generating gradebook: %s', ex.message)
         raise
     log.info('Dosa do kraja!')
 
-def _generate_user_gradebook(course_key, user):
+@transaction.non_atomic_requests
+def _generate_user_gradebook(user, request, course_key, user):
     """
     Recalculates the specified user's gradebook entry
     """

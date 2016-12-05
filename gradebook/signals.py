@@ -6,6 +6,7 @@ import sys
 
 from django.dispatch import receiver
 from django.conf import settings
+from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 
 from courseware.signals import score_changed
@@ -19,7 +20,8 @@ from gradebook.tasks import update_user_gradebook
 log = logging.getLogger(__name__)
 
 
-@receiver(score_changed, dispatch_uid="lms.courseware.score_changed")
+# @receiver(score_changed, dispatch_uid="lms.courseware.score_changed")
+@transaction.non_atomic_requests
 def on_score_changed(sender, **kwargs):
     """
     Listens for a 'score_changed' signal invoke grade book update task
@@ -38,3 +40,6 @@ def on_course_deleted(sender, **kwargs):  # pylint: disable=W0613
     course_key = kwargs['course_key']
     StudentGradebook.objects.filter(course_id=course_key).delete()
     StudentGradebookHistory.objects.filter(course_id=course_key).delete()
+
+
+score_changed.connect(receiver=on_score_changed, dispatch_uid="lms.courseware.score_changed")
